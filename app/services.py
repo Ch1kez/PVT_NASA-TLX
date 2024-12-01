@@ -1,46 +1,67 @@
-# from sqlalchemy.orm import Session
-# from .models import User, PVTResult, NASA_TLX
-# from .schemas import UserSchema, PVTResultSchema, NASA_TLXSсhema
-#
-# def create_user(db: Session, user: UserSchema):
-#     db_user = User(name=user.name, experiment_id=user.experiment_id)
-#     db.add(db_user)
-#     db.commit()
-#     db.refresh(db_user)
-#     return db_user
-#
-# def save_pvt_result(db: Session, result: PVTResultSchema):
-#     db_result = PVTResult(user_id=result.user_id, reaction_time=result.reaction_time)
-#     db.add(db_result)
-#     db.commit()
-#     db.refresh(db_result)
-#     return db_result
-#
-#
+from typing import Optional, Type
+from app.repository import UserRepository
+from app.models import User
 
 
-from sqlalchemy.orm import Session
-from app.models import TestResult
-from app.schemas import PVTResultSchema, NASATLXResultSchema
-import json
+class UserService:
+    def create_user(self, user_data: dict) -> User:
+        """
+        Создает пользователя, валидирует данные и сохраняет в базе данных.
+        :param user_data: Данные пользователя.
+        :return: Созданный пользователь.
+        """
+        with UserRepository() as repo:
+            try:
+                return repo.create_user(user_data)
+            except ValueError as e:
+                # Прокидываем ошибки дальше для обработки в интерфейсе
+                raise e
+            except Exception as e:
+                # Общая обработка ошибок
+                raise ValueError("Неизвестная ошибка при создании пользователя") from e
 
-def save_pvt_result(db: Session, result: PVTResultSchema):
-    db_result = TestResult(
-        user_name=result.user_name,
-        test_type="PVT",
-        result=json.dumps({"reaction_time": result.reaction_time}),
-    )
-    db.add(db_result)
-    db.commit()
+    def get_user_by_id(self, user_id: int) -> Optional[User]:
+        """
+        Получает пользователя по ID.
+        :param user_id: ID пользователя.
+        :return: Пользователь или None.
+        """
+        with UserRepository() as repo:
+            return repo.get_user_by_id(user_id)
 
-def save_nasa_tlx_result(db: Session, result: NASATLXResultSchema):
-    db_result = TestResult(
-        user_name=result.user_name,
-        test_type="NASA-TLX",
-        result=json.dumps(result.scores),
-    )
-    db.add(db_result)
-    db.commit()
+    def update_user(self, user_id: int, update_data: dict) -> User:
+        """
+        Обновляет данные пользователя.
+        :param user_id: ID пользователя.
+        :param update_data: Данные для обновления.
+        :return: Обновленный пользователь.
+        """
+        with UserRepository() as repo:
+            return repo.update_user(user_id, update_data)
 
-def get_test_results(db: Session):
-    return db.query(TestResult).all()
+    def delete_user(self, user_id: int) -> None:
+        """
+        Удаляет пользователя по ID.
+        :param user_id: ID пользователя.
+        """
+        with UserRepository() as repo:
+            repo.delete_user(user_id)
+
+    def get_all_users(self) -> list[Type[User]]:
+        """
+        Возвращает список всех пользователей.
+        :return: Список пользователей.
+        """
+        with UserRepository() as repo:
+            return repo.get_all_users()
+
+
+class Services:
+    user = UserService()
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not isinstance(cls._instance, cls):
+            cls._instance = object.__new__(cls, *args, **kwargs)
+        return cls._instance
