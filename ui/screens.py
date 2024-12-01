@@ -34,9 +34,7 @@ class AuthWindow(CenteredFrame):
         register_button.pack(pady=5)
 
 
-# Register Window
 class RegisterWindow(CenteredFrame):
-
     def __init__(self, master):
         super().__init__(master)
         self.services = services
@@ -56,7 +54,6 @@ class RegisterWindow(CenteredFrame):
         self.password_entry.pack()
         self.password_entry.bind("<KeyRelease>", self.validate_passwords)
 
-
         tk.Label(self, text="Подтвердите пароль").pack()
         self.confirm_password_entry = tk.Entry(self, show="*")
         self.confirm_password_entry.pack()
@@ -74,7 +71,11 @@ class RegisterWindow(CenteredFrame):
         if len(login) < 3 or len(login) > 50:
             self.error_label.config(text="Логин должен быть от 3 до 50 символов")
         else:
-            self.error_label.config(text="")
+            try:
+                if services.user.is_login_exists(login):
+                    self.error_label.config(text="Логин уже используется!")
+            except Exception as e:
+                self.error_label.config(text=f"Ошибка проверки логина: {e}")
 
     def validate_passwords(self, event=None):
         """Валидация совпадения пароля."""
@@ -110,20 +111,20 @@ class RegisterWindow(CenteredFrame):
             "password": password,
         }
 
-        # Валидация через Pydantic
         try:
             validated_data = UserSchema(**user_data)
             self.services.user.create_user(user_data=validated_data.dict())
             tk.Label(self, text="Успешно зарегистрирован!", fg="green").pack()
-            self.master.window_manager.show_frame("MainWindow")
+            self.master.window_manager.show_frame("MainWindow", FIO=FIO)
         except ValidationError as e:
             # Отображение первой ошибки валидации
             first_error = e.errors()[0]
             field = first_error["loc"][0]
             message = first_error["msg"]
             self.error_label.config(text=f"Ошибка в поле '{field}': {message}")
+        except ValueError as e:
+            self.error_label.config(text=str(e))
         except Exception as e:
-            # Отображение других ошибок
             self.error_label.config(text=f"Возникла ошибка: {e}")
 
 
@@ -146,20 +147,22 @@ class LoginWindow(CenteredFrame):
     def login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
-        user_id = True  # Для теста, заменить на реальную логику авторизации
+        FIO = services.user.check_user(login=username, password=password)
 
-        if user_id:
-            self.master.window_manager.show_frame("MainWindow")
+        if FIO:
+            self.master.window_manager.show_frame("MainWindow", FIO=FIO)
         else:
-            tk.Label(self, text="Неверные данные!").pack()
+            tk.Label(self, text="Неверный логин или пароль!", fg="red").pack()
 
 
-# Main Window
+
 class MainWindow(CenteredFrame):
     def __init__(self, master):
         super().__init__(master)
+        # Заголовок окна
         tk.Label(self, text="Эргономическая оценка кабины самолета", font=("Arial", 16)).pack(pady=20)
 
+        # Кнопки для переходов
         tk.Button(self, text="Пройти PVT тест", command=lambda: master.window_manager.show_frame("PVTWindow")).pack(
             pady=10)
         tk.Button(self, text="Пройти NASA-TLX тест",
@@ -168,6 +171,17 @@ class MainWindow(CenteredFrame):
                   command=lambda: master.window_manager.show_frame("ResultsWindow")).pack(pady=10)
         tk.Button(self, text="Отчёты", command=lambda: master.window_manager.show_frame("ReportWindow")).pack(pady=10)
 
+        # Профиль в правом верхнем углу
+        self.profile_label = tk.Label(self, text="Пользователь: ", font=("Arial", 10))
+        self.profile_label.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10)  # Позиционирование в правый верхний угол
+
+    def update_data(self, FIO=None, **kwargs):
+        """
+        Обновляет данные профиля пользователя.
+        :param FIO: ФИО пользователя для отображения.
+        """
+        if FIO:
+            self.profile_label.config(text=f"Пользователь: {FIO}")
 
 # PVT Test Window
 class PVTWindow(CenteredFrame):

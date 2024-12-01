@@ -19,6 +19,15 @@ class DatabaseSession:
 
 
 class UserRepository(DatabaseSession):
+
+    def is_login_exists(self, login: str) -> bool:
+        """
+        Проверяет, существует ли пользователь с указанным логином.
+        :param login: Логин для проверки.
+        :return: True, если логин существует, иначе False.
+        """
+        return self.db.query(User).filter(User.login == login).first() is not None
+
     def create_user(self, user_data: dict) -> User:
         """
         Создает пользователя в базе данных.
@@ -29,17 +38,18 @@ class UserRepository(DatabaseSession):
             raise ValueError("Сессия базы данных не инициализирована.")
 
         try:
-            # Валидация входных данных
             validated_data = UserSchema(**user_data)
         except ValidationError as e:
-            # Структурированная ошибка с деталями
             error_details = [
                 {"field": err["loc"][0], "message": err["msg"]}
                 for err in e.errors()
             ]
             raise ValueError(f"Ошибка валидации: {error_details}")
 
-        # Сохранение пользователя
+        # Проверка существования логина
+        if self.is_login_exists(validated_data.login):
+            raise ValueError("Пользователь с таким логином уже существует!")
+
         user = User(**validated_data.dict())
         self.db.add(user)
         self.db.commit()
@@ -56,6 +66,11 @@ class UserRepository(DatabaseSession):
             raise ValueError("Сессия базы данных не инициализирована.")
 
         return self.db.query(User).filter(User.id == user_id).first()
+
+    def check_user(self, login: str, password: str) -> str | None:
+        return self.db.query(
+            User.name
+        ).filter(User.login == login, User.password == password).first()[0]
 
     def update_user(self, user_id: int, update_data: dict) -> User:
         """

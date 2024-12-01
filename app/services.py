@@ -4,6 +4,17 @@ from app.models import User
 
 
 class UserService:
+
+    def is_login_exists(self, login: str) -> bool:
+        """
+        Проверяет, существует ли пользователь с указанным логином.
+        :param login: Логин для проверки.
+        :return: True, если логин существует, иначе False.
+        """
+        with UserRepository() as repo:
+            return repo.is_login_exists(login)
+
+
     def create_user(self, user_data: dict) -> User:
         """
         Создает пользователя, валидирует данные и сохраняет в базе данных.
@@ -14,10 +25,8 @@ class UserService:
             try:
                 return repo.create_user(user_data)
             except ValueError as e:
-                # Прокидываем ошибки дальше для обработки в интерфейсе
                 raise e
             except Exception as e:
-                # Общая обработка ошибок
                 raise ValueError("Неизвестная ошибка при создании пользователя") from e
 
     def get_user_by_id(self, user_id: int) -> Optional[User]:
@@ -28,6 +37,16 @@ class UserService:
         """
         with UserRepository() as repo:
             return repo.get_user_by_id(user_id)
+
+    def check_user(self, login: str, password: str) -> str | None:
+        """
+        Получает пользователя по ID.
+        :param login: login пользователя.
+        :param password: login пользователя.
+        :return: A или None.
+        """
+        with UserRepository() as repo:
+            return repo.check_user(login, password)
 
     def update_user(self, user_id: int, update_data: dict) -> User:
         """

@@ -3,7 +3,6 @@ class WindowManager:
         self.root = root
         self.frames = {}
 
-        # Настройка root для растяжения
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
 
@@ -13,10 +12,12 @@ class WindowManager:
         frame.grid(row=0, column=0, sticky="nsew")
         self.frames[name] = frame
 
-    def show_frame(self, name):
-        """Показывает фрейм по имени."""
+    def show_frame(self, name, **kwargs):
+        """Показывает фрейм по имени и передает аргументы."""
         frame = self.frames.get(name)
         if frame:
+            if hasattr(frame, "update_data"):
+                frame.update_data(**kwargs)
             frame.tkraise()
         else:
             raise ValueError(f"Frame '{name}' не найден!")
