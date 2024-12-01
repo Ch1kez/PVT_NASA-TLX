@@ -7,18 +7,21 @@ aviation_ergonomics/
 │   ├── schemas.py           # Схемы Pydantic для валидации
 │   ├── database.py          # Настройка подключения к базе данных
 │   ├── services.py          # Бизнес-логика (взаимодействие с БД)
-│   ├── routes.py            # Основные маршруты приложения
 │   ├── pvt.py               # Логика теста PVT
 │   ├── nasa_tlx.py          # Логика теста NASA-TLX
 │   ├── utils.py             # Утилиты (хелперы, общие функции)
 │   └── main.py              # Точка входа в приложение
 │
+├── ui/                      # Интерфейс
+│   ├── __init__.py          # Инициализация пакета UI
+│   ├── main_window.py       # Главное окно приложения
+│   ├── pvt_window.py        # Интерфейс теста PVT
+│   ├── nasa_tlx_window.py   # Интерфейс NASA-TLX
+│   └── results_window.py    # Окно для отображения результатов
+│
 ├── migrations/              # Миграции базы данных
 │
 ├── tests/                   # Тесты для приложения
-│   ├── test_pvt.py          # Тесты для PVT
-│   ├── test_nasa_tlx.py     # Тесты для NASA-TLX
-│   └── test_routes.py       # Тесты API
 │
 ├── config.py                # Конфигурация приложения
 ├── requirements.txt         # Зависимости проекта
