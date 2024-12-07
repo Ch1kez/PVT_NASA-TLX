@@ -70,7 +70,7 @@ class UserRepository(DatabaseSession):
     def check_user(self, login: str, password: str) -> str | None:
         return self.db.query(
             User.name
-        ).filter(User.login == login, User.password == password).first()[0]
+        ).filter(User.login == login, User.password == password).scalar()
 
     def update_user(self, user_id: int, update_data: dict) -> User:
         """

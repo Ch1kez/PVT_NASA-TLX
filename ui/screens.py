@@ -65,6 +65,9 @@ class RegisterWindow(CenteredFrame):
         self.register_button = tk.Button(self, text="Регистрация", command=self.register)
         self.register_button.pack()
 
+        self.back_button = tk.Button(self, text="Назад", command=lambda: master.window_manager.show_frame("AuthWindow"))
+        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
+
     def validate_login(self, event=None):
         """Валидация логина на лету."""
         login = self.login_entry.get()
@@ -143,6 +146,10 @@ class LoginWindow(CenteredFrame):
         self.password_entry.pack()
 
         tk.Button(self, text="Войти", command=self.login).pack(pady=10)
+        self.back_button = tk.Button(self,
+                                     text="Назад",
+                                     command=lambda: master.window_manager.show_frame("AuthWindow"))
+        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
 
     def login(self):
         username = self.username_entry.get()
@@ -153,7 +160,6 @@ class LoginWindow(CenteredFrame):
             self.master.window_manager.show_frame("MainWindow", FIO=FIO)
         else:
             tk.Label(self, text="Неверный логин или пароль!", fg="red").pack()
-
 
 
 class MainWindow(CenteredFrame):
@@ -196,6 +202,11 @@ class PVTWindow(CenteredFrame):
         self.react_button = tk.Button(self, text="РЕАГИРУЙТЕ", state=tk.DISABLED, command=self.record_reaction_time)
         self.react_button.pack(pady=10)
 
+        self.back_button = tk.Button(self,
+                                     text="Назад",
+                                     command=lambda: master.window_manager.show_frame("MainWindow"))
+        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
+
         self.start_time = None
 
     def start_test(self):
@@ -234,6 +245,10 @@ class NASA_TLXWindow(CenteredFrame):
             self.entries[label] = entry
 
         tk.Button(self, text="Сохранить результаты", command=self.save_results).pack(pady=20)
+        self.back_button = tk.Button(self,
+                                     text="Назад",
+                                     command=lambda: master.window_manager.show_frame("MainWindow"))
+        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
 
     def save_results(self):
         results = {label: entry.get() for label, entry in self.entries.items()}
@@ -249,6 +264,10 @@ class ReportWindow(CenteredFrame):
         self.listbox = tk.Listbox(self, width=50, height=10)
         self.listbox.pack(pady=10)
         self.load_results()
+        self.back_button = tk.Button(self,
+                                     text="Назад",
+                                     command=lambda: master.window_manager.show_frame("MainWindow"))
+        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
 
     def load_results(self):
         results = [
@@ -261,9 +280,15 @@ class ReportWindow(CenteredFrame):
 class ResultsWindow(CenteredFrame):
     def __init__(self, master):
         super().__init__(master)
+
         tk.Label(self, text="Результаты тестов", font=("Arial", 16)).pack(pady=20)
         text = tk.Text(self)
         text.pack(fill=tk.BOTH, expand=True)
+
+        self.back_button = tk.Button(self,
+                                     text="Назад",
+                                     command=lambda: master.window_manager.show_frame("MainWindow"))
+        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
 
 
 if __name__ == "__main__":
