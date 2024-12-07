@@ -1,9 +1,7 @@
 import random
 import time
 import tkinter as tk
-
 from pydantic import ValidationError
-
 from app.schemas import UserSchema
 from app.services import Services as services
 
@@ -20,7 +18,7 @@ class CenteredFrame(tk.Frame):
         widget.pack(pady=10)
 
 
-# Auth Window
+# Экраны авторизации
 class AuthWindow(CenteredFrame):
     def __init__(self, master):
         super().__init__(master)
@@ -66,10 +64,9 @@ class RegisterWindow(CenteredFrame):
         self.register_button.pack()
 
         self.back_button = tk.Button(self, text="Назад", command=lambda: master.window_manager.show_frame("AuthWindow"))
-        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
+        self.back_button.place(x=10, y=10)
 
     def validate_login(self, event=None):
-        """Валидация логина на лету."""
         login = self.login_entry.get()
         if len(login) < 3 or len(login) > 50:
             self.error_label.config(text="Логин должен быть от 3 до 50 символов")
@@ -81,7 +78,6 @@ class RegisterWindow(CenteredFrame):
                 self.error_label.config(text=f"Ошибка проверки логина: {e}")
 
     def validate_passwords(self, event=None):
-        """Валидация совпадения пароля."""
         password = self.password_entry.get()
         confirm_password = self.confirm_password_entry.get()
 
@@ -93,26 +89,18 @@ class RegisterWindow(CenteredFrame):
             self.error_label.config(text="")
 
     def register(self):
-        """Обработчик регистрации."""
         FIO = self.FIO_entry.get()
         login = self.login_entry.get()
         password = self.password_entry.get()
         confirm_password = self.confirm_password_entry.get()
 
-        # Очистка ошибок
         self.error_label.config(text="")
 
-        # Проверка совпадения паролей
         if password != confirm_password:
             self.error_label.config(text="Пароли не совпадают!")
             return
 
-        # Данные для регистрации
-        user_data = {
-            "name": FIO,
-            "login": login,
-            "password": password,
-        }
+        user_data = {"name": FIO, "login": login, "password": password}
 
         try:
             validated_data = UserSchema(**user_data)
@@ -120,7 +108,6 @@ class RegisterWindow(CenteredFrame):
             tk.Label(self, text="Успешно зарегистрирован!", fg="green").pack()
             self.master.window_manager.show_frame("MainWindow", FIO=FIO)
         except ValidationError as e:
-            # Отображение первой ошибки валидации
             first_error = e.errors()[0]
             field = first_error["loc"][0]
             message = first_error["msg"]
@@ -131,7 +118,6 @@ class RegisterWindow(CenteredFrame):
             self.error_label.config(text=f"Возникла ошибка: {e}")
 
 
-# Login Window
 class LoginWindow(CenteredFrame):
     def __init__(self, master):
         super().__init__(master)
@@ -146,10 +132,8 @@ class LoginWindow(CenteredFrame):
         self.password_entry.pack()
 
         tk.Button(self, text="Войти", command=self.login).pack(pady=10)
-        self.back_button = tk.Button(self,
-                                     text="Назад",
-                                     command=lambda: master.window_manager.show_frame("AuthWindow"))
-        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
+        self.back_button = tk.Button(self, text="Назад", command=lambda: master.window_manager.show_frame("AuthWindow"))
+        self.back_button.place(x=10, y=10)
 
     def login(self):
         username = self.username_entry.get()
@@ -162,152 +146,225 @@ class LoginWindow(CenteredFrame):
             tk.Label(self, text="Неверный логин или пароль!", fg="red").pack()
 
 
+# Главное меню
 class MainWindow(CenteredFrame):
     def __init__(self, master):
         super().__init__(master)
-        # Заголовок окна
         tk.Label(self, text="Эргономическая оценка кабины самолета", font=("Arial", 16)).pack(pady=20)
 
-        # Кнопки для переходов
-        tk.Button(self, text="Пройти PVT тест", command=lambda: master.window_manager.show_frame("PVTWindow")).pack(
-            pady=10)
-        tk.Button(self, text="Пройти NASA-TLX тест",
-                  command=lambda: master.window_manager.show_frame("NASA_TLXWindow")).pack(pady=10)
-        tk.Button(self, text="Результаты тестов",
+        tk.Button(self, text="Перейти к тестированию",
+                  command=lambda: master.window_manager.show_frame("TestSelectionWindow")).pack(pady=10)
+        tk.Button(self, text="Результаты тестирований",
                   command=lambda: master.window_manager.show_frame("ResultsWindow")).pack(pady=10)
-        tk.Button(self, text="Отчёты", command=lambda: master.window_manager.show_frame("ReportWindow")).pack(pady=10)
+        tk.Button(self, text="Отчёты по тестированиям",
+                  command=lambda: master.window_manager.show_frame("ReportWindow")).pack(pady=10)
 
-        # Профиль в правом верхнем углу
         self.profile_label = tk.Label(self, text="Пользователь: ", font=("Arial", 10))
-        self.profile_label.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10)  # Позиционирование в правый верхний угол
+        self.profile_label.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10)
 
     def update_data(self, FIO=None, **kwargs):
-        """
-        Обновляет данные профиля пользователя.
-        :param FIO: ФИО пользователя для отображения.
-        """
         if FIO:
             self.profile_label.config(text=f"Пользователь: {FIO}")
 
-# PVT Test Window
+
+# Экран выбора теста
+class TestSelectionWindow(CenteredFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        tk.Label(self, text="Выберите упражнение для тестирования", font=("Arial", 14)).pack(pady=20)
+
+        # Создаем выпадающий список для выбора упражнения
+        self.exercise_options = [
+            "Взлет",
+            "Полет в плохих условиях",
+            "Полет в хороших условиях",
+            "Посадка"
+        ]
+
+        self.error_label = tk.Label(self, text="", fg="red")
+        self.error_label.pack()
+
+        self.exercise_var = tk.StringVar()
+        self.exercise_var.set("Выберете упражнение для тестирования")
+
+        self.exercise_menu = tk.OptionMenu(self, self.exercise_var, *self.exercise_options)
+        self.exercise_menu.pack(pady=10)
+
+        self.start_button = tk.Button(self, text="Перейти к тестированию", state=tk.NORMAL,
+                                      command=self.start_test)
+        self.start_button.pack(pady=10)
+
+        self.back_button = tk.Button(self, text="Назад",
+                                     command=lambda: master.window_manager.show_frame("MainWindow"))
+        self.back_button.place(x=10, y=10)
+
+    def start_test(self):
+        exercise_var = self.exercise_var.get()
+        if exercise_var != "Выберете упражнение для тестирования":
+            self.master.window_manager.show_frame("TestInstructionWindow",
+                                                  exercise_var=exercise_var,
+                                                  current_test="PVT Test")
+        else:
+            self.error_label.config(text="Выберите упражнение для тестирования")
+
+
+# Экран с инструкциями к тесту
+class TestInstructionWindow(CenteredFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.current_test = None
+
+        self.instruction_label = tk.Label(self, text="Инструкция к тесту", font=("Arial", 14))
+        self.instruction_label.pack(pady=20)
+
+        self.instruction_text = tk.Label(self, text="", wraplength=400, justify="left")
+        self.instruction_text.pack(pady=10)
+
+        self.start_test_button = tk.Button(self, text="Начать тест", command=self.start_test)
+        self.start_test_button.pack(pady=10)
+
+        self.back_button = tk.Button(self, text="Назад",
+                                     command=lambda: master.window_manager.show_frame("TestSelectionWindow"))
+        self.back_button.place(x=10, y=10)
+
+    def update_data(self, current_test, **kwargs):
+        self.current_test = current_test
+        self.instruction_text.config(text=f"Инструкция к {self.current_test}")
+
+    def start_test(self):
+        """Метод для начала теста."""
+        if self.current_test == "PVT Test":
+            self.master.window_manager.show_frame("PVTWindow")
+        elif self.current_test == "NASA-TLX Test":
+            self.master.window_manager.show_frame("NASA_TLXWindow")
+        else:
+            tk.Label(self, text="Невозможно начать тест: неизвестный тип", fg="red").pack()
+
+
 class PVTWindow(CenteredFrame):
     def __init__(self, master):
         super().__init__(master)
-        self.label = tk.Label(self, text="Нажмите 'СТАРТ', чтобы начать тест.", font=("Arial", 14))
+        self.start_time = None
+        self.results = []
+
+        self.label = tk.Label(self, text="Нажмите кнопку, как только увидите сигнал", font=("Arial", 14))
         self.label.pack(pady=20)
 
-        self.start_button = tk.Button(self, text="СТАРТ", command=self.start_test)
-        self.start_button.pack(pady=10)
+        self.button = tk.Button(self, text="Начать тест", command=self.start_test)
+        self.button.pack(pady=10)
 
-        self.react_button = tk.Button(self, text="РЕАГИРУЙТЕ", state=tk.DISABLED, command=self.record_reaction_time)
-        self.react_button.pack(pady=10)
-
-        self.back_button = tk.Button(self,
-                                     text="Назад",
-                                     command=lambda: master.window_manager.show_frame("MainWindow"))
-        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
-
-        self.start_time = None
+        self.back_button = tk.Button(self, text="Назад",
+                                     command=lambda: master.window_manager.show_frame("TestSelectionWindow"))
+        self.back_button.place(x=10, y=10)
 
     def start_test(self):
-        self.start_button.config(state=tk.DISABLED)
-        self.react_button.config(state=tk.DISABLED)
-        self.label.config(text="Подождите...")
-        self.update()
+        self.label.config(text="Ожидайте сигнал...")
+        self.button.config(state=tk.DISABLED)
+        self.master.after(random.randint(2000, 5000), self.show_signal)
 
-        delay = random.uniform(2, 5)
-        self.after(int(delay * 1000), self.enable_reaction_phase)
-
-    def enable_reaction_phase(self):
-        self.label.config(text="НАЖМИТЕ 'РЕАГИРУЙТЕ'!")
-        self.react_button.config(state=tk.NORMAL)
+    def show_signal(self):
         self.start_time = time.time()
+        self.label.config(text="ЖМИ!")
+        self.button.config(text="Нажми сейчас!", state=tk.NORMAL, command=self.record_response)
 
-    def record_reaction_time(self):
-        if self.start_time:
-            reaction_time = time.time() - self.start_time
-            self.label.config(text=f"Ваше время реакции: {reaction_time:.3f} сек.")
-            self.start_button.config(state=tk.NORMAL)
-            self.react_button.config(state=tk.DISABLED)
+    def record_response(self):
+        reaction_time = time.time() - self.start_time
+        self.results.append(reaction_time)
+        self.label.config(text=f"Ваше время реакции: {reaction_time:.3f} сек")
+
+        if len(self.results) < 2:  # Запускаем тест 5 раз
+            self.button.config(text="Следующий раунд", state=tk.NORMAL, command=self.start_test)
+        else:
+            self.finish_test()
+
+    def finish_test(self):
+        avg_reaction = sum(self.results) / len(self.results)
+        self.label.config(text=f"Тест завершён! Среднее время реакции: {avg_reaction:.3f} сек")
+        self.button.config(text="Завершить", state=tk.NORMAL,
+                           command=lambda: self.master.window_manager.show_frame("ExerciseWaitWindow"))
+
+        # Сохраняем результаты теста в базу данных (например)
+        self.services.test.save_pvt_results(self.results, avg_reaction)
 
 
-# NASA-TLX Window
+# Экран ожидания выполнения упражнений на стенде
+class ExerciseWaitWindow(CenteredFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.label = tk.Label(self, text="Ожидание выполнения упражнения на стенде", font=("Arial", 14))
+        self.label.pack(pady=20)
+
+        self.wait_button = tk.Button(self, text="Далее", command=self.next_stage)
+        self.wait_button.pack(pady=10)
+
+        self.back_button = tk.Button(self, text="Назад", command=lambda: master.window_manager.show_frame("PVTWindow"))
+        self.back_button.place(x=10, y=10)
+
+    def next_stage(self):
+        self.master.window_manager.show_frame("TestInstructionWindow", current_test="NASA-TLX Test")
+
+
+# Экран для NASA-TLX теста
 class NASA_TLXWindow(CenteredFrame):
     def __init__(self, master):
         super().__init__(master)
-        self.labels = ["Mental Demand", "Physical Demand", "Temporal Demand", "Performance", "Effort", "Frustration"]
-        self.entries = {}
+        self.questions = [
+            "Какую умственную нагрузку вы ощущали?",
+            "Какую физическую нагрузку вы ощущали?",
+            "Какую временную нагрузку вы ощущали?",
+            "Какую успеваемость вы ощутили?",
+            "Какой уровень усилий вы приложили?",
+            "Какой уровень стресса вы ощутили?"
+        ]
+        self.current_question = 0
+        self.responses = {}
 
-        for label in self.labels:
-            tk.Label(self, text=label, font=("Arial", 12)).pack(pady=5)
-            entry = tk.Entry(self)
-            entry.pack(pady=5)
-            self.entries[label] = entry
+        self.label = tk.Label(self, text="", font=("Arial", 14), wraplength=400)
+        self.label.pack(pady=20)
 
-        tk.Button(self, text="Сохранить результаты", command=self.save_results).pack(pady=20)
-        self.back_button = tk.Button(self,
-                                     text="Назад",
+        self.scale = tk.Scale(self, from_=0, to=20, orient=tk.HORIZONTAL, length=300)
+        self.scale.pack(pady=10)
+
+        self.next_button = tk.Button(self, text="Далее", command=self.next_question)
+        self.next_button.pack(pady=10)
+
+        self.back_button = tk.Button(self, text="Отменить тест",
                                      command=lambda: master.window_manager.show_frame("MainWindow"))
-        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
+        self.back_button.place(x=10, y=10)
 
-    def save_results(self):
-        results = {label: entry.get() for label, entry in self.entries.items()}
-        print("Результаты NASA-TLX:", results)
+    def update_data(self, **kwargs):
+        self.current_question = 0
+        self.responses = {}
+        self.display_question()
+
+    def display_question(self):
+        if self.current_question < len(self.questions):
+            self.label.config(text=self.questions[self.current_question])
+            self.scale.set(10)  # Сброс шкалы на среднее значение
+        else:
+            self.finish_test()
+
+    def next_question(self):
+        response = self.scale.get()
+        self.responses[self.questions[self.current_question]] = response
+        self.current_question += 1
+        self.display_question()
+
+    def finish_test(self):
+        # Сохраняем результаты NASA-TLX
+        # self.services.test.save_nasa_tlx_results(self.responses)
+        self.label.config(text="".join(self.responses))
+
+        self.master.window_manager.show_frame("TestCompletionWindow")
 
 
-# Report Window
-class ReportWindow(CenteredFrame):
+# Экран завершения теста
+class TestCompletionWindow(CenteredFrame):
     def __init__(self, master):
         super().__init__(master)
-        tk.Label(self, text="Ваши результаты:", font=("Arial", 14)).pack(pady=10)
+        self.label = tk.Label(self, text="Тест завершён. Спасибо за участие!", font=("Arial", 14))
+        self.label.pack(pady=20)
 
-        self.listbox = tk.Listbox(self, width=50, height=10)
-        self.listbox.pack(pady=10)
-        self.load_results()
-        self.back_button = tk.Button(self,
-                                     text="Назад",
-                                     command=lambda: master.window_manager.show_frame("MainWindow"))
-        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
-
-    def load_results(self):
-        results = [
-            {'Mental Demand': 123, 'Physical Demand': 123, 'Temporal Demand': 123, 'Performance': 123, 'Effort': 123,
-             'Frustration': 123}]
-        for result in results:
-            self.listbox.insert(tk.END, "".join(f'{key}: {val}, ' for key, val in result.items()))
-
-
-class ResultsWindow(CenteredFrame):
-    def __init__(self, master):
-        super().__init__(master)
-
-        tk.Label(self, text="Результаты тестов", font=("Arial", 16)).pack(pady=20)
-        text = tk.Text(self)
-        text.pack(fill=tk.BOTH, expand=True)
-
-        self.back_button = tk.Button(self,
-                                     text="Назад",
-                                     command=lambda: master.window_manager.show_frame("MainWindow"))
-        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
-
-
-if __name__ == "__main__":
-    from ui.window_manager import WindowManager
-
-    root = tk.Tk()
-    root.geometry("800x600")
-    window_manager = WindowManager(root)
-    root.window_manager = window_manager
-
-    # Register all frames
-    window_manager.create_and_register("AuthWindow", AuthWindow)
-    window_manager.create_and_register("LoginWindow", LoginWindow)
-    window_manager.create_and_register("RegisterWindow", RegisterWindow)
-    window_manager.create_and_register("MainWindow", MainWindow)
-    window_manager.create_and_register("PVTWindow", PVTWindow)
-    window_manager.create_and_register("NASA_TLXWindow", NASA_TLXWindow)
-    window_manager.create_and_register("ReportWindow", ReportWindow)
-    window_manager.create_and_register("ResultsWindow", ResultsWindow)
-
-    window_manager.show_frame("AuthWindow")
-    root.mainloop()
+        self.finish_button = tk.Button(self, text="Завершить",
+                                       command=lambda: master.window_manager.show_frame("MainWindow"))
+        self.finish_button.pack(pady=10)
