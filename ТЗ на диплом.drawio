@@ -1,0 +1,88 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" version="25.0.3">
+  <diagram name="Page-1" id="j6nPo2iINqj13D-cwvuC">
+    <mxGraphModel dx="4107" dy="3683" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="2339" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-3" value="Получение нагрузки на задачу" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" parent="1" vertex="1">
+          <mxGeometry x="200" y="170" width="960" height="350" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-17" value="Для всех параметров NASA-TLX" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=bottom;align=right;" parent="1" vertex="1">
+          <mxGeometry x="730" y="270" width="280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-1" value="Прохождение PVT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="340" y="290" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-2" value="Выаполнение задачи на пилотажном комплексе" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="470" y="290" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-4" value="Объяснение сути эксперимента" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="210" y="290" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-5" value="Правила заполнения NASA TLX" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="210" y="360" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-6" value="Правила прохождения PVT" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="210" y="430" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-7" value="Прохождение PVT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="600" y="290" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-8" value="Прочитать про параметр" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="740" y="290" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-10" value="&lt;i&gt;ФИО, эксперимент, номер задачи&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="670" width="260" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-11" value="Тест психомоторной бдительности" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" parent="1" vertex="1">
+          <mxGeometry x="660" y="670" width="270" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-12" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="685" y="790" width="220" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-13" value="&lt;i&gt;Описание теста (Что делать)&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="680" y="700" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-14" value="Начать тест" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="735" y="740" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-15" value="MENTAL DEMAND" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" parent="1" vertex="1">
+          <mxGeometry x="950" y="670" width="270" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-16" value="Оценить параметр" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="870" y="290" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-18" value="Получить спасибо (финальный кадр интерфейса)&lt;div&gt;Результат тестирования.&lt;/div&gt;&lt;div&gt;Список других результатов пользователся (история предыдущих задач)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="1025" y="290" width="120" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-19" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="970" y="810" width="240" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-20" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1040" y="795" width="20" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-21" value="&lt;i&gt;Описание параметра и как его оценить&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="970" y="700" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-23" value="... DEMAND" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;" parent="1" vertex="1">
+          <mxGeometry x="1240" y="670" width="270" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-24" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1260" y="810" width="240" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-25" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1330" y="795" width="20" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-26" value="&lt;i&gt;Описание параметра и как его оценить&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="1260" y="700" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="DnUxg6TQ4vW2ushDOTRM-27" value="Интересно среднее по задаче&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;В идеале сделать нармировку от 0 до 1 в десятых&amp;nbsp;&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;" parent="1" vertex="1">
+          <mxGeometry x="1230" y="250" width="150" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="B_jzOKRTbWkGki4gkj-a-1" value="разы прохождения теста (первый раз перепройти можно, второй нет)" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;" parent="1" vertex="1">
+          <mxGeometry x="710" y="870" width="80" height="100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

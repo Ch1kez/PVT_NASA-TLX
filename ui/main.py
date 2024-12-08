@@ -4,8 +4,11 @@ from ui.window_manager import WindowManager
 from ui.screens import (
     AuthWindow, LoginWindow, RegisterWindow, MainWindow,
     TestSelectionWindow, TestInstructionWindow,
-    TestCompletionWindow, PVTWindow, NASA_TLXWindow, ExerciseWaitWindow
+    TestCompletionWindow, PVTWindow, NASA_TLXWindow, ExerciseWaitWindow, InformingTestWindow
 )
+
+from app.utils import TestResults
+
 
 def register_frames(window_manager):
     """Регистрируем все окна приложения в менеджере окон."""
@@ -20,6 +23,7 @@ def register_frames(window_manager):
         "PVTWindow": PVTWindow,
         "NASA_TLXWindow": NASA_TLXWindow,
         "ExerciseWaitWindow": ExerciseWaitWindow,
+        "InformingTestWindow": InformingTestWindow
     }
 
     for frame_name, frame_class in frames.items():
