@@ -1,0 +1,654 @@
+Так, я хочу, чтобы у меня было приложение для эргономической оценки пилотов
+логика приложения такова:
+1) процесс входа или регистрации
+2) выбор уже существующего теста (из селектора (из базы данных)) или создание нового и кнопка приступить к тестированию, которая становится доступна, только если выбран тест
+3) Экран, где будет рассказывать, что сейчас будет тестирование в несколько этапов, сначала выполнение pvt теста, потом выполнение упражнение на стенде, потом снова pvt, потом nasa-tlx, получение результата тестирования и завершение работы + кнопка приступить
+4) следующий экран это открытие инструкции и немного рассказывается про то что такое PVT тест и кнопка пройти тестирование
+5)  экран тестирования pvt
+6) Экран ожидания выполнения упражнения, и кнопка, что упражнение выполнено
+7) Переход на страницу напоминания, что сейчас будет pvt тест и что надо делать и кнопка приступить
+8) проведения pvt теста
+9) Экран информирования и рассказа, что такое nasa-tlx и как его выполнять
+10) экран nasa-tlx теста + описание каждого параметра по маленькой круглой кнопки с вопросом, рядом с названием каждого параметра, открывается как всплывающее окно внутри экрана
+11) вывод результатов тестирования и кнопка завершения тестирования
+12) переход на главную страницу с уведомлением об успешности или не ууспешности сохранения теста в бд
+
+Вот мои модули, которые я уже реализовал:
+main:
+from tkinter import Tk
+
+from app.database import init_db
+from ui.window_manager import WindowManager
+from ui.screens import AuthWindow, LoginWindow, RegisterWindow, MainWindow, PVTWindow, NASA_TLXWindow, ResultsWindow, ReportWindow
+
+def main():
+
+    init_db()
+
+    root = Tk()
+    root.geometry("800x600")
+    root.title("Эргономическая оценка кабины самолета")
+
+    # Создаем менеджер окон
+    window_manager = WindowManager(root)
+    root.window_manager = window_manager
+
+    # Регистрируем все кадры
+    window_manager.create_and_register("AuthWindow", AuthWindow)
+    window_manager.create_and_register("LoginWindow", LoginWindow)
+    window_manager.create_and_register("RegisterWindow", RegisterWindow)
+    window_manager.create_and_register("MainWindow", MainWindow)
+    window_manager.create_and_register("PVTWindow", PVTWindow)
+    window_manager.create_and_register("NASA_TLXWindow", NASA_TLXWindow)
+    window_manager.create_and_register("ResultsWindow", ResultsWindow)
+    window_manager.create_and_register("ReportWindow", ReportWindow)
+
+    # Показ начального экрана
+    window_manager.show_frame("AuthWindow")
+
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
+window_manager:
+class WindowManager:
+    def __init__(self, root):
+        self.root = root
+        self.frames = {}
+
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+
+    def create_and_register(self, name, frame_class, *args, **kwargs):
+        """Создает и регистрирует новый фрейм."""
+        frame = frame_class(self.root, *args, **kwargs)
+        frame.grid(row=0, column=0, sticky="nsew")
+        self.frames[name] = frame
+
+    def show_frame(self, name, **kwargs):
+        """Показывает фрейм по имени и передает аргументы."""
+        frame = self.frames.get(name)
+        if frame:
+            if hasattr(frame, "update_data"):
+                frame.update_data(**kwargs)
+            frame.tkraise()
+        else:
+            raise ValueError(f"Frame '{name}' не найден!")
+screens:
+import random
+import time
+import tkinter as tk
+
+from pydantic import ValidationError
+
+from app.schemas import UserSchema
+from app.services import Services as services
+
+
+class CenteredFrame(tk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        # Центрируем основной контейнер
+        self.container = tk.Frame(self)
+        self.container.place(relx=0.5, rely=0.5, anchor="center")
+
+    def add_to_container(self, widget):
+        """Добавляет виджет в контейнер для удобства."""
+        widget.pack(pady=10)
+
+
+# Auth Window
+class AuthWindow(CenteredFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        tk.Label(self, text="Добро пожаловать!", font=("Arial", 16)).pack(pady=20)
+
+        login_button = tk.Button(self, text="Вход", command=lambda: master.window_manager.show_frame("LoginWindow"))
+        login_button.pack(pady=5)
+
+        register_button = tk.Button(self, text="Зарегистрироваться",
+                                    command=lambda: master.window_manager.show_frame("RegisterWindow"))
+        register_button.pack(pady=5)
+
+
+class RegisterWindow(CenteredFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.services = services
+
+        # Поля ввода
+        tk.Label(self, text="ФИО").pack()
+        self.FIO_entry = tk.Entry(self)
+        self.FIO_entry.pack()
+
+        tk.Label(self, text="Логин").pack()
+        self.login_entry = tk.Entry(self)
+        self.login_entry.pack()
+        self.login_entry.bind("<KeyRelease>", self.validate_login)
+
+        tk.Label(self, text="Пароль").pack()
+        self.password_entry = tk.Entry(self, show="*")
+        self.password_entry.pack()
+        self.password_entry.bind("<KeyRelease>", self.validate_passwords)
+
+        tk.Label(self, text="Подтвердите пароль").pack()
+        self.confirm_password_entry = tk.Entry(self, show="*")
+        self.confirm_password_entry.pack()
+        self.confirm_password_entry.bind("<KeyRelease>", self.validate_passwords)
+
+        self.error_label = tk.Label(self, text="", fg="red")
+        self.error_label.pack()
+
+        self.register_button = tk.Button(self, text="Регистрация", command=self.register)
+        self.register_button.pack()
+
+        self.back_button = tk.Button(self, text="Назад", command=lambda: master.window_manager.show_frame("AuthWindow"))
+        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
+
+    def validate_login(self, event=None):
+        """Валидация логина на лету."""
+        login = self.login_entry.get()
+        if len(login) < 3 or len(login) > 50:
+            self.error_label.config(text="Логин должен быть от 3 до 50 символов")
+        else:
+            try:
+                if services.user.is_login_exists(login):
+                    self.error_label.config(text="Логин уже используется!")
+            except Exception as e:
+                self.error_label.config(text=f"Ошибка проверки логина: {e}")
+
+    def validate_passwords(self, event=None):
+        """Валидация совпадения пароля."""
+        password = self.password_entry.get()
+        confirm_password = self.confirm_password_entry.get()
+
+        if len(password) < 4:
+            self.error_label.config(text="Пароль слишком короткий!")
+        elif password != confirm_password:
+            self.error_label.config(text="Пароли не совпадают!")
+        else:
+            self.error_label.config(text="")
+
+    def register(self):
+        """Обработчик регистрации."""
+        FIO = self.FIO_entry.get()
+        login = self.login_entry.get()
+        password = self.password_entry.get()
+        confirm_password = self.confirm_password_entry.get()
+
+        # Очистка ошибок
+        self.error_label.config(text="")
+
+        # Проверка совпадения паролей
+        if password != confirm_password:
+            self.error_label.config(text="Пароли не совпадают!")
+            return
+
+        # Данные для регистрации
+        user_data = {
+            "name": FIO,
+            "login": login,
+            "password": password,
+        }
+
+        try:
+            validated_data = UserSchema(**user_data)
+            self.services.user.create_user(user_data=validated_data.dict())
+            tk.Label(self, text="Успешно зарегистрирован!", fg="green").pack()
+            self.master.window_manager.show_frame("MainWindow", FIO=FIO)
+        except ValidationError as e:
+            # Отображение первой ошибки валидации
+            first_error = e.errors()[0]
+            field = first_error["loc"][0]
+            message = first_error["msg"]
+            self.error_label.config(text=f"Ошибка в поле '{field}': {message}")
+        except ValueError as e:
+            self.error_label.config(text=str(e))
+        except Exception as e:
+            self.error_label.config(text=f"Возникла ошибка: {e}")
+
+
+# Login Window
+class LoginWindow(CenteredFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        tk.Label(self, text="Вход").pack(pady=10)
+
+        tk.Label(self, text="Имя пользователя:").pack()
+        self.username_entry = tk.Entry(self)
+        self.username_entry.pack()
+
+        tk.Label(self, text="Пароль:").pack()
+        self.password_entry = tk.Entry(self, show="*")
+        self.password_entry.pack()
+
+        tk.Button(self, text="Войти", command=self.login).pack(pady=10)
+        self.back_button = tk.Button(self,
+                                     text="Назад",
+                                     command=lambda: master.window_manager.show_frame("AuthWindow"))
+        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
+
+    def login(self):
+        username = self.username_entry.get()
+        password = self.password_entry.get()
+        FIO = services.user.check_user(login=username, password=password)
+
+        if FIO:
+            self.master.window_manager.show_frame("MainWindow", FIO=FIO)
+        else:
+            tk.Label(self, text="Неверный логин или пароль!", fg="red").pack()
+
+
+class MainWindow(CenteredFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        # Заголовок окна
+        tk.Label(self, text="Эргономическая оценка кабины самолета", font=("Arial", 16)).pack(pady=20)
+
+        # Кнопки для переходов
+        tk.Button(self, text="Пройти PVT тест", command=lambda: master.window_manager.show_frame("PVTWindow")).pack(
+            pady=10)
+        tk.Button(self, text="Пройти NASA-TLX тест",
+                  command=lambda: master.window_manager.show_frame("NASA_TLXWindow")).pack(pady=10)
+        tk.Button(self, text="Результаты тестов",
+                  command=lambda: master.window_manager.show_frame("ResultsWindow")).pack(pady=10)
+        tk.Button(self, text="Отчёты", command=lambda: master.window_manager.show_frame("ReportWindow")).pack(pady=10)
+
+        # Профиль в правом верхнем углу
+        self.profile_label = tk.Label(self, text="Пользователь: ", font=("Arial", 10))
+        self.profile_label.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10)  # Позиционирование в правый верхний угол
+
+    def update_data(self, FIO=None, **kwargs):
+        """
+        Обновляет данные профиля пользователя.
+        :param FIO: ФИО пользователя для отображения.
+        """
+        if FIO:
+            self.profile_label.config(text=f"Пользователь: {FIO}")
+
+# PVT Test Window
+class PVTWindow(CenteredFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.label = tk.Label(self, text="Нажмите 'СТАРТ', чтобы начать тест.", font=("Arial", 14))
+        self.label.pack(pady=20)
+
+        self.start_button = tk.Button(self, text="СТАРТ", command=self.start_test)
+        self.start_button.pack(pady=10)
+
+        self.react_button = tk.Button(self, text="РЕАГИРУЙТЕ", state=tk.DISABLED, command=self.record_reaction_time)
+        self.react_button.pack(pady=10)
+
+        self.back_button = tk.Button(self,
+                                     text="Назад",
+                                     command=lambda: master.window_manager.show_frame("MainWindow"))
+        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
+
+        self.start_time = None
+
+    def start_test(self):
+        self.start_button.config(state=tk.DISABLED)
+        self.react_button.config(state=tk.DISABLED)
+        self.label.config(text="Подождите...")
+        self.update()
+
+        delay = random.uniform(2, 5)
+        self.after(int(delay * 1000), self.enable_reaction_phase)
+
+    def enable_reaction_phase(self):
+        self.label.config(text="НАЖМИТЕ 'РЕАГИРУЙТЕ'!")
+        self.react_button.config(state=tk.NORMAL)
+        self.start_time = time.time()
+
+    def record_reaction_time(self):
+        if self.start_time:
+            reaction_time = time.time() - self.start_time
+            self.label.config(text=f"Ваше время реакции: {reaction_time:.3f} сек.")
+            self.start_button.config(state=tk.NORMAL)
+            self.react_button.config(state=tk.DISABLED)
+
+
+# NASA-TLX Window
+class NASA_TLXWindow(CenteredFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.labels = ["Mental Demand", "Physical Demand", "Temporal Demand", "Performance", "Effort", "Frustration"]
+        self.entries = {}
+
+        for label in self.labels:
+            tk.Label(self, text=label, font=("Arial", 12)).pack(pady=5)
+            entry = tk.Entry(self)
+            entry.pack(pady=5)
+            self.entries[label] = entry
+
+        tk.Button(self, text="Сохранить результаты", command=self.save_results).pack(pady=20)
+        self.back_button = tk.Button(self,
+                                     text="Назад",
+                                     command=lambda: master.window_manager.show_frame("MainWindow"))
+        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
+
+    def save_results(self):
+        results = {label: entry.get() for label, entry in self.entries.items()}
+        print("Результаты NASA-TLX:", results)
+
+
+# Report Window
+class ReportWindow(CenteredFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        tk.Label(self, text="Ваши результаты:", font=("Arial", 14)).pack(pady=10)
+
+        self.listbox = tk.Listbox(self, width=50, height=10)
+        self.listbox.pack(pady=10)
+        self.load_results()
+        self.back_button = tk.Button(self,
+                                     text="Назад",
+                                     command=lambda: master.window_manager.show_frame("MainWindow"))
+        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
+
+    def load_results(self):
+        results = [
+            {'Mental Demand': 123, 'Physical Demand': 123, 'Temporal Demand': 123, 'Performance': 123, 'Effort': 123,
+             'Frustration': 123}]
+        for result in results:
+            self.listbox.insert(tk.END, "".join(f'{key}: {val}, ' for key, val in result.items()))
+
+
+class ResultsWindow(CenteredFrame):
+    def __init__(self, master):
+        super().__init__(master)
+
+        tk.Label(self, text="Результаты тестов", font=("Arial", 16)).pack(pady=20)
+        text = tk.Text(self)
+        text.pack(fill=tk.BOTH, expand=True)
+
+        self.back_button = tk.Button(self,
+                                     text="Назад",
+                                     command=lambda: master.window_manager.show_frame("MainWindow"))
+        self.back_button.place(x=10, y=10)  # Установка в левый верхний угол с небольшим отступом
+
+
+if __name__ == "__main__":
+    from ui.window_manager import WindowManager
+
+    root = tk.Tk()
+    root.geometry("800x600")
+    window_manager = WindowManager(root)
+    root.window_manager = window_manager
+
+    # Register all frames
+    window_manager.create_and_register("AuthWindow", AuthWindow)
+    window_manager.create_and_register("LoginWindow", LoginWindow)
+    window_manager.create_and_register("RegisterWindow", RegisterWindow)
+    window_manager.create_and_register("MainWindow", MainWindow)
+    window_manager.create_and_register("PVTWindow", PVTWindow)
+    window_manager.create_and_register("NASA_TLXWindow", NASA_TLXWindow)
+    window_manager.create_and_register("ReportWindow", ReportWindow)
+    window_manager.create_and_register("ResultsWindow", ResultsWindow)
+
+    window_manager.show_frame("AuthWindow")
+    root.mainloop()
+schemas:
+from typing import Dict
+from pydantic import BaseModel, Field
+
+
+class UserSchema(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100, description="Полное имя пользователя")
+    login: str = Field(..., min_length=3, max_length=50, description="Логин пользователя")
+    password: str = Field(..., min_length=4, description="Пароль пользователя")
+
+
+class PVTResultSchema(BaseModel):
+    user_id: int
+    reaction_time: float
+
+
+class NASA_TLXSсhema(BaseModel):
+    user_id: int
+    mental_demand: int
+    physical_demand: int
+    temporal_demand: int
+    performance: int
+    effort: int
+    frustration: int
+
+
+class PVTResultSchema(BaseModel):
+    user_name: str
+    reaction_time: float  # Время реакции в секундах
+
+
+class NASATLXResultSchema(BaseModel):
+    user_name: str
+    scores: Dict[str, int]  # Оценки по каждому из параметров NASA-TLX
+services:
+from typing import Optional, Type
+from app.repository import UserRepository
+from app.models import User
+
+
+class UserService:
+
+    def is_login_exists(self, login: str) -> bool:
+        """
+        Проверяет, существует ли пользователь с указанным логином.
+        :param login: Логин для проверки.
+        :return: True, если логин существует, иначе False.
+        """
+        with UserRepository() as repo:
+            return repo.is_login_exists(login)
+
+
+    def create_user(self, user_data: dict) -> User:
+        """
+        Создает пользователя, валидирует данные и сохраняет в базе данных.
+        :param user_data: Данные пользователя.
+        :return: Созданный пользователь.
+        """
+        with UserRepository() as repo:
+            try:
+                return repo.create_user(user_data)
+            except ValueError as e:
+                raise e
+            except Exception as e:
+                raise ValueError("Неизвестная ошибка при создании пользователя") from e
+
+    def get_user_by_id(self, user_id: int) -> Optional[User]:
+        """
+        Получает пользователя по ID.
+        :param user_id: ID пользователя.
+        :return: Пользователь или None.
+        """
+        with UserRepository() as repo:
+            return repo.get_user_by_id(user_id)
+
+    def check_user(self, login: str, password: str) -> str | None:
+        """
+        Получает пользователя по ID.
+        :param login: login пользователя.
+        :param password: login пользователя.
+        :return: A или None.
+        """
+        with UserRepository() as repo:
+            return repo.check_user(login, password)
+
+    def update_user(self, user_id: int, update_data: dict) -> User:
+        """
+        Обновляет данные пользователя.
+        :param user_id: ID пользователя.
+        :param update_data: Данные для обновления.
+        :return: Обновленный пользователь.
+        """
+        with UserRepository() as repo:
+            return repo.update_user(user_id, update_data)
+
+    def delete_user(self, user_id: int) -> None:
+        """
+        Удаляет пользователя по ID.
+        :param user_id: ID пользователя.
+        """
+
+        with UserRepository() as repo:
+            repo.delete_user(user_id)
+
+    def get_all_users(self) -> list[Type[User]]:
+        """
+        Возвращает список всех пользователей.
+        :return: Список пользователей.
+        """
+        with UserRepository() as repo:
+            return repo.get_all_users()
+
+
+class Services:
+    user = UserService()
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not isinstance(cls._instance, cls):
+            cls._instance = object.__new__(cls, *args, **kwargs)
+        return cls._instance
+repository:
+from typing import Optional, Type
+from pydantic import ValidationError
+from sqlalchemy.orm import Session
+from .schemas import UserSchema
+from app.models import User, SessionLocal
+
+
+class DatabaseSession:
+    def __init__(self):
+        self.db: Optional[Session] = None
+
+    def __enter__(self):
+        self.db = SessionLocal()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.db:
+            self.db.close()
+
+
+class UserRepository(DatabaseSession):
+
+    def is_login_exists(self, login: str) -> bool:
+        """
+        Проверяет, существует ли пользователь с указанным логином.
+        :param login: Логин для проверки.
+        :return: True, если логин существует, иначе False.
+        """
+        return self.db.query(User).filter(User.login == login).first() is not None
+
+    def create_user(self, user_data: dict) -> User:
+        """
+        Создает пользователя в базе данных.
+        :param user_data: Данные пользователя в виде словаря.
+        :return: Объект User.
+        """
+        if not self.db:
+            raise ValueError("Сессия базы данных не инициализирована.")
+
+        try:
+            validated_data = UserSchema(**user_data)
+        except ValidationError as e:
+            error_details = [
+                {"field": err["loc"][0], "message": err["msg"]}
+                for err in e.errors()
+            ]
+            raise ValueError(f"Ошибка валидации: {error_details}")
+
+        # Проверка существования логина
+        if self.is_login_exists(validated_data.login):
+            raise ValueError("Пользователь с таким логином уже существует!")
+
+        user = User(**validated_data.dict())
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
+    def get_user_by_id(self, user_id: int) -> Optional[User]:
+        """
+        Получает пользователя по ID.
+        :param user_id: ID пользователя.
+        :return: Объект User или None.
+        """
+        if not self.db:
+            raise ValueError("Сессия базы данных не инициализирована.")
+
+        return self.db.query(User).filter(User.id == user_id).first()
+
+    def check_user(self, login: str, password: str) -> str | None:
+        return self.db.query(
+            User.name
+        ).filter(User.login == login, User.password == password).scalar()
+
+    def update_user(self, user_id: int, update_data: dict) -> User:
+        """
+        Обновляет данные пользователя.
+        :param user_id: ID пользователя.
+        :param update_data: Данные для обновления.
+        :return: Объект User.
+        """
+        if not self.db:
+            raise ValueError("Сессия базы данных не инициализирована.")
+
+        user = self.get_user_by_id(user_id)
+        if not user:
+            raise ValueError("Пользователь с таким ID не найден.")
+
+        try:
+            validated_data = UserSchema(**update_data)
+        except ValidationError as e:
+            raise ValueError(f"Ошибка валидации: {e}")
+
+        for key, value in validated_data.dict(exclude_unset=True).items():
+            setattr(user, key, value)
+
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
+    def delete_user(self, user_id: int) -> None:
+        """
+        Удаляет пользователя из базы данных.
+        :param user_id: ID пользователя.
+        """
+        if not self.db:
+            raise ValueError("Сессия базы данных не инициализирована.")
+
+        user = self.get_user_by_id(user_id)
+        if not user:
+            raise ValueError("Пользователь с таким ID не найден.")
+
+        self.db.delete(user)
+        self.db.commit()
+
+    def get_all_users(self) -> list[Type[User]]:
+        """
+        Возвращает список всех пользователей.
+        :return: Список объектов User.
+        """
+        if not self.db:
+            raise ValueError("Сессия базы данных не инициализирована.")
+
+        return self.db.query(User).all()
+models:
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, create_engine
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+import datetime
+
+DATABASE_URL = "sqlite:///aviation_ergonomics.db"
+
+Base = declarative_base()
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    login = Column(String, nullable=True)
+    password = Column(String, nullable=True)

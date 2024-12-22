@@ -27,7 +27,7 @@ class UserService:
             except ValueError as e:
                 raise e
             except Exception as e:
-                raise ValueError("Неизвестная ошибка при создании пользователя") from e
+                raise ValueError("Ошибка при создании пользователя") from e
 
     def get_user_by_id(self, user_id: int) -> Optional[User]:
         """
