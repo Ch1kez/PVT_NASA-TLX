@@ -45,7 +45,7 @@ def create_structure(base_path, structure):
                 create_structure(folder_path, contents)
 
 # Create the project structure
-base_path = "ErgonomicsApplication"
+base_path = "../ErgonomicsApplication"
 if os.path.exists(base_path):
     shutil.rmtree(base_path)  # Clear previous attempts
 
