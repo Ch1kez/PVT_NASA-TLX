@@ -63,7 +63,7 @@ class PVTWindow(CenteredFrame):
         )
         self.back_button.place(x=10, y=10)
 
-    def update_data(self, type_test: str = "before", exercise_name=None, task_number=None, **kwargs):
+    def update_data(self, type_test: str = "before", exercise_name='Взлет', task_number='1', **kwargs):
         """
         Вызывается при показе экрана.
         Сбрасываем результаты, раунды, выставляем type_test = 'before' или 'after'.

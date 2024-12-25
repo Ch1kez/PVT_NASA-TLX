@@ -1,5 +1,5 @@
-# ui/components/ErrorLabel.py
 import tkinter as tk
+
 
 class ErrorLabel(tk.Label):
     def __init__(self, master, **kwargs):

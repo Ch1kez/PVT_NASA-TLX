@@ -1,5 +1,5 @@
-# ui/components/StyledButton.py
 import tkinter as tk
+
 
 class StyledButton(tk.Button):
     def __init__(self, master, **kwargs):

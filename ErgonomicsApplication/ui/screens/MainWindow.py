@@ -54,7 +54,7 @@ class MainWindow(CenteredFrame):
             bg="#f7f7f7",
             fg="#333"
         )
-        logout_button.place(x=10, y=50)
+        logout_button.place(x=10, y=10)
 
         self.profile_label = tk.Label(self, text="Пользователь: ", font=("Arial", 12), bg="#f7f7f7", fg="#333")
         self.profile_label.place(relx=0.0, rely=1.0, anchor="sw", x=10, y=-10)

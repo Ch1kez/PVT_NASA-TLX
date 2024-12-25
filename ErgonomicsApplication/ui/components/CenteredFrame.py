@@ -1,6 +1,6 @@
-# ui/components/CenteredFrame.py
 import tkinter as tk
 from PIL import Image, ImageTk
+
 
 class CenteredFrame(tk.Frame):
     def __init__(self, master):
