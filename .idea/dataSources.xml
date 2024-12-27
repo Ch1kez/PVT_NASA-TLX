@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="aviation_ergonomics" uuid="1340af74-3203-4976-9a25-af3da104b071">
+    <data-source source="LOCAL" name="aviation_ergonomics [2]" uuid="7134201a-4fdb-405f-9303-c7c63cd8dbd3">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:C:\Users\SD\PycharmProjects\PVT_NASA-TLX\ErgonomicsApplication\aviation_ergonomics.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:C:\Users\danil\PycharmProjects\PVT_NASA-TLX\ErgonomicsApplication\aviation_ergonomics.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
       <libraries>
         <library>
